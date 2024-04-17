@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken"
-import { GenerateTokenBody, IUserJWTParsed, SerializedUserExpressRequest } from "../../type";
+import { GenerateTokenBody, IUserJWTParsed, SerializedBasicAuthExpressRequest, SerializedJWTExpressRequest } from "../../type";
 import { compareAccess } from "../../helper/util.helper";
 import UserModel from "../../helper/database/model/user.model";
 import Forbidden from "../../helper/error/Forbidden";
@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import TokenModel from "../../helper/database/model/token.model";
 import BadRequest from "../../helper/error/BadRequest";
 import NotFound from "../../helper/error/NotFound";
+import { compare, compareSync } from "bcrypt";
 
 // generate token
 // POST /auth/token
@@ -18,13 +19,9 @@ export async function generateToken(
 ){
     try{
         
+        const request = req as SerializedBasicAuthExpressRequest
         const body = req.body as GenerateTokenBody
-        const user = await UserModel.findOne({username : body.username})
-        
-        if(!user){
-            const error = new Forbidden("Invalid username or password")
-            return next(error)
-        }
+        const user = request.user
     
         // validate proposed access
         compareAccess(user, req.body.access)
@@ -85,6 +82,8 @@ export async function revokeTokenById(
 
         const tokenId = req.params.tokenId as string
         const token = await TokenModel.findByIdAndDelete(tokenId)
+            .select("-token")
+            .populate("user", "username")
 
         if(!token) return next(new NotFound("Token with the current id not found"))
 
@@ -114,7 +113,7 @@ export async function updateTokenById(
         
         const token = await TokenModel.findById(tokenId)
             .select("-token")
-            .populate("user", "username isDeleted")
+            .populate("user", "username")
 
         if(!token) return next(new NotFound("Token with the current id not found"))
 
@@ -143,10 +142,10 @@ export async function viewToken(
 ){
     try{
         
-        const request = req as SerializedUserExpressRequest
+        const request = req as SerializedBasicAuthExpressRequest
         const tokens = await TokenModel
             .find({user : request.user._id}, "-token")
-            .populate("user", "username isDeleted")
+            .populate("user", "username")
 
         return res.json({
             data : tokens

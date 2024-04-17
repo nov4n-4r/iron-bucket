@@ -2,8 +2,6 @@ import * as yup from "yup";
 import { isObjectEmpty } from "../../helper/util.helper";
 
 export const generateTokenBodySchema = yup.object().shape({
-    username : yup.string().required(),
-    password : yup.string().required(),
     title : yup.string().required(),
     description : yup.string(),
     access : yup.object().shape({

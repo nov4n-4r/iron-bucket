@@ -30,8 +30,6 @@ export interface Permission extends Record<string, any> {
 }
 
 export interface GenerateTokenBody {
-    username : string,
-    password : string,
     title : string,
     description? : string,
     access : Permission
@@ -54,8 +52,18 @@ export interface IUserJWTParsed extends
         _id : Types.ObjectId
     }
 
-export interface SerializedUserExpressRequest extends Request {
+export interface SerializedJWTExpressRequest extends Request {
     user : IUserJWTParsed
+}
+
+export interface SerializedBasicAuthExpressRequest extends Request {
+    user : {
+        _id : Types.ObjectId,
+        username : string,
+        access : Permission,
+        owner? : boolean,
+        isDeleted : boolean
+    } 
 }
   
 // If this file has no import/export statements (i.e. is a script)

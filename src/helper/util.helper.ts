@@ -1,7 +1,5 @@
-import { Document, Types } from "mongoose"
-import { IUser, IUserJWTParsed } from "../type"
+import { Permission } from "../type"
 import BadRequest from "./error/BadRequest"
-import Forbidden from "./error/Forbidden"
 
 export function isObjectEmpty(object : Object){
 
@@ -10,11 +8,9 @@ export function isObjectEmpty(object : Object){
 } 
 
 export function compareAccess(
-    user : Document<unknown, {}, IUser> & IUser & {_id : Types.ObjectId},
+    userObject : unknown & { access : Permission },
     access : Record<any, any | Object>
 ){
-
-    const userObject = user.toObject() as IUser
 
     // Define permission types and their corresponding error messages
     const permissionTypes = ['file', 'user'];

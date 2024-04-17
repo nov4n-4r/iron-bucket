@@ -3,7 +3,7 @@ import { upload as uploadFile } from "../../helper/file/multer.file"
 import express from "express"
 import { reqQueryValidation } from "../../middleware/validation/yup/yup"
 import { getBucketFileQuery } from "./bucket.request.schema"
-import { requirePermission, tokenRequired } from "../../middleware/auth"
+import { requirePermission, tokenRequired } from "../../middleware/auth.middleware"
 
 const indexRouter = express.Router()
 

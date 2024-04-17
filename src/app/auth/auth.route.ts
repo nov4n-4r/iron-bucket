@@ -1,8 +1,8 @@
 import express from "express"
-import { reqBodyValidation, yupValidate } from "../../middleware/validation/yup/yup"
-import { generateTokenBodySchema, updateTokenByIdBodySchema } from "./auth.request.schema"
-import { generateToken, revokeTokenById, updateTokenById, viewToken } from "./auth.controller"
-import { tokenRequired } from "../../middleware/auth"
+import { reqBodyValidation } from "../../middleware/validation/yup/yup"
+import { generateTokenBodySchema } from "./auth.request.schema"
+import { generateToken, revokeTokenById, viewToken } from "./auth.controller"
+import { basicAuthRequired } from "../../middleware/auth.middleware"
 
 const authRouter = express.Router()
 
@@ -15,6 +15,7 @@ const authRouter = express.Router()
 // POST /auth/token
 authRouter.post(
     "/token",
+    basicAuthRequired,
     reqBodyValidation(generateTokenBodySchema),
     generateToken
 )
@@ -23,7 +24,7 @@ authRouter.post(
 // GET /auth/token
 authRouter.get(
     "/token",
-    tokenRequired,
+    basicAuthRequired,
     viewToken
 )
 
@@ -31,17 +32,17 @@ authRouter.get(
 // DELETE /auth/token/:tokenId
 authRouter.delete(
     "/token/:tokenId",
-    tokenRequired,
+    basicAuthRequired,
     revokeTokenById
 )
 
 // update token
 // PUT /auth/token/:tokenId
-authRouter.put(
-    "/token/:tokenId",
-    tokenRequired,
-    reqBodyValidation(updateTokenByIdBodySchema),
-    updateTokenById
-)
+// authRouter.put(
+//     "/token/:tokenId",
+//     tokenRequired,
+//     reqBodyValidation(updateTokenByIdBodySchema),
+//     updateTokenById
+// )
 
 export default authRouter

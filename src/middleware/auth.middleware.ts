@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import Forbidden from "../helper/error/Forbidden";
-import { IUserJWTParsed, SerializedUserExpressRequest } from "../type";
+import { IUserJWTParsed, SerializedBasicAuthExpressRequest, SerializedJWTExpressRequest } from "../type";
 import * as jwt from "jsonwebtoken"
 import TokenModel from "../helper/database/model/token.model";
 import { getValueByDotNotation } from "../helper/util.helper";
 import Unauthenticated from "../helper/error/Unauthorized";
+import UserModel from "../helper/database/model/user.model";
+import { compareSync } from "bcrypt";
 
 /** 
  * this middleware used to verify and serialize jwt from authorization header 
@@ -35,13 +37,54 @@ export async function tokenRequired(
 
     const payload = isTokenValid as IUserJWTParsed
 
-    const clonedReq = req as SerializedUserExpressRequest
+    const clonedReq = req as SerializedJWTExpressRequest
     clonedReq.user = payload
     req = clonedReq
 
     return next()
 
 }
+
+
+export async function basicAuthRequired(req : Request, res : Response, next : NextFunction){
+    if(!req.headers.authorization){
+        return next(new Forbidden("Unauthenticated"))
+    }
+    
+    const [type, token] = req.headers.authorization.split(" ") as [string?, string?]
+    if(type !== "Basic" || !token){
+        return next(new Forbidden("Authentication error, basic authentication required"))
+    }
+    const [username, password] = Buffer.from(token, 'base64').toString().split(":")
+    
+    const user = await UserModel.findOne({username})
+
+    if(!user) {
+        return next(new Forbidden("Authentication error, user or password invalid"))
+    }
+
+    const isPasswordValid = compareSync(password, user.password)
+
+    if(!isPasswordValid){
+        return next(new Forbidden("Authentication error, user or password invalid"))
+    }
+
+    const nextReq = req as SerializedBasicAuthExpressRequest
+
+    nextReq.user = {
+        _id : user._id,
+        access : user.access,
+        username : user.username,
+        isDeleted : user.isDeleted
+    }
+
+    if(user.owner) nextReq.user.owner = user.owner
+
+    req = nextReq
+
+    return next()
+
+} 
 
 /**
  * 
@@ -57,7 +100,7 @@ export function requirePermission(path : string){
     ){
         
 
-        const request = req as SerializedUserExpressRequest
+        const request = req as SerializedJWTExpressRequest | SerializedBasicAuthExpressRequest
         
         if(!request.user){
             return next(new Unauthenticated("Authentication error, user not found"))
