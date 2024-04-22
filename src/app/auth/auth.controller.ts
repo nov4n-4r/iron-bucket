@@ -1,14 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken"
-import { GenerateTokenBody, IUserJWTParsed, SerializedBasicAuthExpressRequest, SerializedJWTExpressRequest } from "../../type";
+import { GenerateTokenBody, IUserJWTParsed, SerializedBasicAuthExpressRequest } from "../../type";
 import { compareAccess } from "../../helper/util.helper";
-import UserModel from "../../helper/database/model/user.model";
-import Forbidden from "../../helper/error/Forbidden";
 import mongoose from "mongoose";
 import TokenModel from "../../helper/database/model/token.model";
 import BadRequest from "../../helper/error/BadRequest";
 import NotFound from "../../helper/error/NotFound";
-import { compare, compareSync } from "bcrypt";
 
 // generate token
 // POST /auth/token
@@ -91,42 +88,6 @@ export async function revokeTokenById(
             data : token
         })
     
-    }catch(err){
-        return next(err)
-    }
-
-}
-
-// updating token's data
-// PUT /auth/token/:tokenId
-export async function updateTokenById(
-    req : Request,
-    res : Response,
-    next : NextFunction
-){
-
-    try{
-
-        const body : Record<string, string> | {title? : string, description? : string} = req.body        
-
-        const tokenId = req.params.tokenId as string
-        
-        const token = await TokenModel.findById(tokenId)
-            .select("-token")
-            .populate("user", "username")
-
-        if(!token) return next(new NotFound("Token with the current id not found"))
-
-        Object.entries(body).map(
-            ([key, value]) => {token.set(key, value)}
-        )
-
-        token.save()
-
-        return res.json({
-            data : token.toObject({getters : false})
-        })
-
     }catch(err){
         return next(err)
     }

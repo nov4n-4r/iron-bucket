@@ -7,6 +7,7 @@ import logger from "../../helper/logger.helper";
 import FileNotFound from "../../helper/error/FileNotFound";
 import HttpError from "../../helper/error/HttpError";
 import { client } from "../../helper/database/mongo/connection.mongodb";
+import { SerializedJWTExpressRequest } from "../../type";
 
 export async function getBucket(
     req : Request, 
@@ -48,8 +49,7 @@ export async function getBucketFile(
         data : files,
         pagination : {
             total : totalFiles,
-            perPage,
-            // lastCursor : lastFile._id.toString()
+            perPage
         }
     })
 }
@@ -64,6 +64,7 @@ export async function upload(
 ){
 
     const { bucket : bucketName } = req.params
+    const { user } = req as SerializedJWTExpressRequest
 
     if(!req.file){
         const err = new BadRequest("Field 'file' not found")
@@ -82,6 +83,7 @@ export async function upload(
         f.filename,
         {
             metadata : {
+                user : user._id,
                 originalName : f.originalname,
                 mimetype : f.mimetype,
                 custom : f.meta,

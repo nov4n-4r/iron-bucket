@@ -89,7 +89,7 @@ export async function basicAuthRequired(req : Request, res : Response, next : Ne
 /**
  * 
  * @param path 
- * this middleware should be used after tokenRequired() middleware
+ * this middleware should be used after tokenRequired() or basicAuthRequired()
  */
 export function requirePermission(path : string){
     
@@ -116,4 +116,31 @@ export function requirePermission(path : string){
 
     }
     
+}
+
+/**
+ * 
+ * this middleware should be used after tokenRequired() or basicAuthRequired() 
+ */
+export async function activeUserOnly(
+    req : Request,
+    res : Response,
+    next : NextFunction
+){
+
+    
+    const request = req as SerializedJWTExpressRequest | SerializedBasicAuthExpressRequest
+    
+    const user = await UserModel.findById(request.user._id)
+
+    if(!request.user || !user){
+        return next(new Unauthenticated("Authentication error, user not found"))
+    }
+
+    if(user.isDeleted){
+        return next(new Forbidden("Your account has been deleted"))
+    }
+
+    return next()
+
 }

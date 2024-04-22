@@ -29,6 +29,7 @@ import errorHandler from "./middleware/errorHandler.middleware"
 import authRouter from "./app/auth/auth.route"
 import mongoose from "mongoose"
 import { seed } from "./helper/seed.helper"
+import userRouter from "./app/user/user.route"
 
 const app = express()
 
@@ -37,6 +38,7 @@ app.use(bodyParser.json())
 
 app.use("/", indexRouter)
 app.use("/auth", authRouter)
+app.use("/user", userRouter)
 
 app.use(errorHandler)
 

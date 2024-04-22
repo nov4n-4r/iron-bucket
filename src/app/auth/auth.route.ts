@@ -2,7 +2,7 @@ import express from "express"
 import { reqBodyValidation } from "../../middleware/validation/yup/yup"
 import { generateTokenBodySchema } from "./auth.request.schema"
 import { generateToken, revokeTokenById, viewToken } from "./auth.controller"
-import { basicAuthRequired } from "../../middleware/auth.middleware"
+import { activeUserOnly, basicAuthRequired } from "../../middleware/auth.middleware"
 
 const authRouter = express.Router()
 
@@ -16,6 +16,7 @@ const authRouter = express.Router()
 authRouter.post(
     "/token",
     basicAuthRequired,
+    activeUserOnly,
     reqBodyValidation(generateTokenBodySchema),
     generateToken
 )
@@ -25,6 +26,7 @@ authRouter.post(
 authRouter.get(
     "/token",
     basicAuthRequired,
+    activeUserOnly,
     viewToken
 )
 
@@ -33,16 +35,8 @@ authRouter.get(
 authRouter.delete(
     "/token/:tokenId",
     basicAuthRequired,
+    activeUserOnly,
     revokeTokenById
 )
-
-// update token
-// PUT /auth/token/:tokenId
-// authRouter.put(
-//     "/token/:tokenId",
-//     tokenRequired,
-//     reqBodyValidation(updateTokenByIdBodySchema),
-//     updateTokenById
-// )
 
 export default authRouter

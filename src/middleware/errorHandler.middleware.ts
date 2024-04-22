@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { ValidationError } from "yup";
 import logger from "../helper/logger.helper";
-import BadRequest from "../helper/error/BadRequest";
 import HttpError from "../helper/error/HttpError";
 
 function errorHandler(
@@ -43,12 +42,13 @@ function errorHandler(
     logger.error(err.stack)
     return res
         .status(500)
-        .end({
+        .json({
             error : {
-                name : "InternalServerError",
-                message : "Unknown error"
+                name : err.name,
+                message : err.message
             }
         })
+        .end()
 
 }
 
